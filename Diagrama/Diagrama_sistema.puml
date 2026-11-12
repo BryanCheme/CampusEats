@@ -1,0 +1,178 @@
+
+@startuml
+title CampusEats - Diagrama de Clases UML - Grupo 2
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+package "Modelo" {
+  class LineaPedido {
+    +idPedido : String
+    +ocurrenciaPedido : int
+    +platoNombre : String
+    +cantidad : int
+    +fechaHora : String
+    +pagado : boolean
+    +fechaPagado : String
+    +precioUnitario : BigDecimal
+    +totalPedido : BigDecimal
+  }
+
+  class Pago {
+    +referencia : String
+    +monto : double
+    +estado : String
+    +fechaHora : String
+  }
+
+  class Plato {
+    +idPlato : int
+    +nombre : String
+    +categoria : String
+    +precioActual : double
+    +estado : String
+  }
+}
+
+package "Adapter" {
+  interface "FuenteDatos<T>" as FuenteDatos {
+    +leer() : List<T>
+  }
+
+  class AppPedidosJsonAdapter {
+    -ruta : Path
+    +leer() : List<LineaPedido>
+  }
+
+  class PasarelaCsvAdapter {
+    -ruta : Path
+    +leer() : List<Pago>
+  }
+
+  class MenuCsvAdapter {
+    -ruta : Path
+    +leer() : List<Plato>
+  }
+
+  FuenteDatos <|.. AppPedidosJsonAdapter
+  FuenteDatos <|.. PasarelaCsvAdapter
+  FuenteDatos <|.. MenuCsvAdapter
+}
+
+package "Factory" {
+  class FabricaFuentes {
+    -TIPOS : Map
+    +crear(tipo, ruta) : FuenteDatos<?>
+  }
+
+  FabricaFuentes ..> FuenteDatos : crea
+}
+
+package "Pipeline" {
+  interface Filtro {
+    +aplicar(lineas) : List<LineaPedido>
+  }
+
+  class FiltroDuplicados
+  class FiltroCantidadValida
+  class FiltroSoloPagados
+  class FiltroPagoAprobado
+
+  class Pipeline {
+    -filtros : List<Filtro>
+    +agregarFiltro(filtro) : void
+    +ejecutar(lineas) : List<LineaPedido>
+  }
+
+  Filtro <|.. FiltroDuplicados
+  Filtro <|.. FiltroCantidadValida
+  Filtro <|.. FiltroSoloPagados
+  Filtro <|.. FiltroPagoAprobado
+
+  Pipeline o-- Filtro : ejecuta
+  FiltroPagoAprobado --> Pago : verifica
+}
+
+package "Strategy" {
+  interface Metrica {
+    +nombre() : String
+    +calcular(lineas) : String
+  }
+
+  class MetricaPlatosTop
+  class MetricaPedidosPorHora
+  class MetricaTicketPromedio
+
+  Metrica <|.. MetricaPlatosTop
+  Metrica <|.. MetricaPedidosPorHora
+  Metrica <|.. MetricaTicketPromedio
+}
+
+package "Repository" {
+  interface RepoAnalitica {
+    +guardarLineas(lineas) : void
+    +guardarPagos(pagos) : void
+    +lineasEntre(desde, hasta) : List<LineaPedido>
+    +pagosEntre(desde, hasta) : List<Pago>
+  }
+
+  class RepoAnaliticaEnMemoria {
+    -lineasAlmacenadas : List<LineaPedido>
+    -pagosAlmacenados : List<Pago>
+  }
+
+  RepoAnalitica <|.. RepoAnaliticaEnMemoria
+}
+
+package "Facade" {
+  class ServicioAnalitica {
+    -repo : RepoAnalitica
+    -metricas : List<Metrica>
+    +ServicioAnalitica(repo, metricas)
+    +cargar() : void
+    +resumen(desde, hasta) : void
+  }
+
+  class CampusEats {
+    +main(args) : void
+  }
+
+  CampusEats --> ServicioAnalitica : utiliza
+  ServicioAnalitica --> RepoAnalitica : guarda y consulta
+  ServicioAnalitica --> Metrica : calcula
+  ServicioAnalitica ..> FabricaFuentes : solicita fuentes
+  ServicioAnalitica ..> Pipeline : ejecuta
+}
+
+AppPedidosJsonAdapter ..> LineaPedido
+PasarelaCsvAdapter ..> Pago
+MenuCsvAdapter ..> Plato
+
+Filtro ..> LineaPedido : procesa
+Metrica ..> LineaPedido : analiza
+RepoAnalitica ..> LineaPedido : almacena
+RepoAnalitica ..> Pago : almacena
+
+note as N1
+  Patrones de diseno utilizados:
+
+  Adapter: Convierte archivos JSON y CSV
+  a objetos mediante una interfaz comun.
+
+  Factory: Crea el adaptador adecuado
+  segun la configuracion de fuentes.
+
+  Pipeline: Limpia los datos mediante
+  filtros independientes y ordenados.
+
+  Strategy: Permite calcular distintas
+  metricas usando una interfaz comun.
+
+  Repository: Separa el almacenamiento
+  de la logica de negocio.
+
+  Facade: Centraliza el acceso al sistema
+  mediante ServicioAnalitica.
+end note
+
+@enduml
