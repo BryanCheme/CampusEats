@@ -1,6 +1,6 @@
 CampusEats - Taller de patrones de diseño
 
-Abrir esta carpeta como proyecto Maven en NetBeans con JDK 17.
+Abrir esta carpeta como proyecto Maven en NetBeans con JDK 17 o superior.
 Ejecutar la clase com.mycompany.campuseats.CampusEats.
 Los archivos estan en datos/ y sus rutas se definen en config/fuentes.json.
 Ejecutar desde la raiz del proyecto.
