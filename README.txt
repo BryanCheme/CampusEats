@@ -11,7 +11,7 @@ Metricas: platos mas vendidos, pedidos por hora, ticket promedio.
 
 CampusEats - Design Patterns Workshop
 
-Open this folder as a Maven project in NetBeans using JDK 17.
+Open this folder as a Maven project in NetBeans using JDK 17 or higher.
 Run the class `com.mycompany.campuseats.CampusEats`.
 Data files are located in the `datos/` directory, and their paths are defined in `config/fuentes.json`.
 Execute from the project root.
